@@ -1,24 +1,7 @@
 # %%
 import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+from utils import plot_position_estimation, plot_velocity_estimation
 
-# %%
-# Simulate noisy data from two sensors
-np.random.seed(42)
-true_position = np.linspace(0, 10, 100)  # True position in 1D
-
-# Sensor 1: Low frequency, high accuracy
-s1_time = np.linspace(0, 10, 20)  # Low frequency
-s1_measurements = np.interp(s1_time, true_position, true_position) + np.random.normal(0, 0.1, len(s1_time))
-
-# Sensor 2: High frequency, low accuracy
-s2_time = np.linspace(0, 10, 100)  # High frequency
-s2_measurements = true_position + np.random.normal(0, 0.5, len(s2_time))
-
-# %%
-# Simple averaging to denoise sensor measurements
-average_position = np.interp(s2_time, s1_time, s1_measurements) * 0.5 + s2_measurements * 0.5
 
 # %%
 # Kalman Filter implementation
@@ -37,6 +20,23 @@ class KalmanFilter:
     def predict(self):
         self.error_covariance += self.process_variance
         return self.estimate
+
+# %%
+# Simulate noisy data from two sensors
+np.random.seed(42)
+true_position = np.linspace(0, 10, 100)  # True position in 1D
+
+# Sensor 1: Low frequency, high accuracy
+s1_time = np.linspace(0, 10, 20)  # Low frequency
+s1_measurements = np.interp(s1_time, true_position, true_position) + np.random.normal(0, 0.1, len(s1_time))
+
+# Sensor 2: High frequency, low accuracy
+s2_time = np.linspace(0, 10, 100)  # High frequency
+s2_measurements = true_position + np.random.normal(0, 0.5, len(s2_time))
+
+# %% Using Update only
+# Simple averaging to denoise sensor measurements
+average_position = np.interp(s2_time, s1_time, s1_measurements) * 0.5 + s2_measurements * 0.5
 
 kf = KalmanFilter(process_variance=0.1, measurement_variance=0.5)
 kalman_positions = []
@@ -57,43 +57,12 @@ kalman_mse = np.mean(kalman_error**2)
 s1_mse = np.mean(s1_error**2)
 s2_mse = np.mean(s2_error**2)
 
-# Create subplots
-fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                     subplot_titles=("Position Estimation", "Estimation Error"))
-
-# Add position estimation traces
-fig.add_trace(go.Scatter(x=np.linspace(0, 10, 100), y=true_position, mode='lines', name='True Position', line=dict(dash='dash')),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s1_time, y=s1_measurements, mode='markers', name='Sensor 1 (Low Freq, High Acc)', marker=dict(color='red')),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=s2_measurements, mode='markers', name='Sensor 2 (High Freq, Low Acc)', marker=dict(color='blue', opacity=0.5)),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=average_position, mode='lines', name='Simple Average', line=dict(color='green')),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=kalman_positions, mode='lines', name='Kalman Filter', line=dict(color='orange')),
-              row=1, col=1)
-
-# Add error traces with MSE in legend labels
-fig.add_trace(go.Scatter(x=np.linspace(0, 10, 100), y=kalman_error, mode='lines', name=f'Kalman Error (MSE={kalman_mse:.2f})', line=dict(color='purple')),
-              row=2, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=s1_error, mode='lines', name=f'Sensor 1 Error (MSE={s1_mse:.2f})', line=dict(color='red', dash='dot')),
-              row=2, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=s2_error, mode='lines', name=f'Sensor 2 Error (MSE={s2_mse:.2f})', line=dict(color='blue', dash='dot')),
-              row=2, col=1)
-
-# Update layout
-fig.update_layout(
-    title="State Estimation in 1D",
-    xaxis_title="Time",
-    yaxis_title="Position",
-    xaxis2_title="Time",
-    yaxis2_title="Error",
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-    template="plotly_white"
+# Plot position estimation and errors
+plot_position_estimation(
+    true_position, s1_time, s1_measurements, s2_time, s2_measurements,
+    average_position, kalman_positions, kalman_error, s1_error, s2_error,
+    kalman_mse, s1_mse, s2_mse
 )
-
-fig.show()
-
 
 # %%
 # Calculate velocity for each sensor and Kalman filter
@@ -112,37 +81,190 @@ s1_velocity_mse = np.mean(s1_velocity_error**2)
 s2_velocity_mse = np.mean(s2_velocity_error**2)
 kalman_velocity_mse = np.mean(kalman_velocity_error**2)
 
-# Create subplots for velocity
-fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
-                     subplot_titles=("Velocity Estimation", "Velocity Estimation Error"))
-
-# Add velocity estimation traces
-fig.add_trace(go.Scatter(x=s2_time, y=true_velocity, mode='lines', name='True Velocity', line=dict(dash='dash')),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=s1_velocity, mode='lines', name='Sensor 1 Velocity', line=dict(color='red')),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=s2_velocity, mode='lines', name='Sensor 2 Velocity', line=dict(color='blue')),
-              row=1, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=kalman_velocity, mode='lines', name='Kalman Velocity', line=dict(color='orange')),
-              row=1, col=1)
-
-# Add velocity error traces
-fig.add_trace(go.Scatter(x=s2_time, y=s1_velocity_error, mode='lines', name=f'Sensor 1 Velocity Error (MSE={s1_velocity_mse:.2f})', line=dict(color='red', dash='dot')),
-              row=2, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=s2_velocity_error, mode='lines', name=f'Sensor 2 Velocity Error (MSE={s2_velocity_mse:.2f})', line=dict(color='blue', dash='dot')),
-              row=2, col=1)
-fig.add_trace(go.Scatter(x=s2_time, y=kalman_velocity_error, mode='lines', name=f'Kalman Velocity Error (MSE={kalman_velocity_mse:.2f})', line=dict(color='purple')),
-              row=2, col=1)
-
-# Update layout
-fig.update_layout(
-    title="Velocity Estimation in 1D",
-    xaxis_title="Time",
-    yaxis_title="Velocity",
-    xaxis2_title="Time",
-    yaxis2_title="Error",
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-    template="plotly_white"
+# Plot velocity estimation and errors
+plot_velocity_estimation(
+    true_velocity, s1_velocity, s2_velocity, kalman_velocity,
+    s1_velocity_error, s2_velocity_error, kalman_velocity_error,
+    s1_velocity_mse, s2_velocity_mse, kalman_velocity_mse, s2_time
 )
 
-fig.show()
+# %% Using Predict Only
+# Kalman Filter implementation with velocity input for prediction
+class KalmanFilter2:
+    def __init__(self, process_variance, measurement_variance):
+        self.process_variance = process_variance
+        self.measurement_variance = measurement_variance
+        self.estimate = 0
+        self.error_covariance = 1
+
+    def update(self, measurement):
+        kalman_gain = self.error_covariance / (self.error_covariance + self.measurement_variance)
+        self.estimate = self.estimate + kalman_gain * (measurement - self.estimate)
+        self.error_covariance = (1 - kalman_gain) * self.error_covariance
+
+    def predict(self, velocity_measurement):
+        self.estimate += velocity_measurement  # Incorporate velocity into position prediction
+        self.error_covariance += self.process_variance
+        return self.estimate
+    
+kf = KalmanFilter2(process_variance=0.1, measurement_variance=0.5)
+kalman_positions2 = []
+
+for velocity in s2_velocity:
+    kf.predict(velocity)
+    kalman_positions2.append(kf.estimate)
+
+# Calculate errors
+kalman_error2 = np.array(kalman_positions2) - true_position
+
+# %%
+# Calculate Mean Squared Errors (MSE)
+kalman_mse = np.mean(kalman_error2**2)
+
+# %%
+# Plot position estimation and errors
+plot_position_estimation(
+    true_position, s1_time, s1_measurements, s2_time, s2_measurements,
+    average_position, kalman_positions2, kalman_error2, s1_error, s2_error,
+    kalman_mse, s1_mse, s2_mse
+)
+
+# %%
+# Calculate velocity for each sensor and Kalman filter
+kalman_velocity2 = np.gradient(kalman_positions2, s2_time)
+
+# Calculate velocity errors
+kalman_velocity_error = kalman_velocity2 - true_velocity
+
+# Calculate Mean Squared Errors (MSE) for velocity
+kalman_velocity_mse = np.mean(kalman_velocity_error**2)
+
+# Plot velocity estimation and errors
+plot_velocity_estimation(
+    true_velocity, s1_velocity, s2_velocity, kalman_velocity2,
+    s1_velocity_error, s2_velocity_error, kalman_velocity_error,
+    s1_velocity_mse, s2_velocity_mse, kalman_velocity_mse, s2_time
+)
+
+# %% Update and Predict (The wrong way)
+# Kalman Filter implementation with velocity input for prediction
+class KalmanFilter3:
+    def __init__(self, process_variance, measurement_variance):
+        self.process_variance = process_variance
+        self.measurement_variance = measurement_variance
+        self.estimate = 0
+        self.error_covariance = 1
+
+    def update(self, measurement):
+        kalman_gain = self.error_covariance / (self.error_covariance + self.measurement_variance)
+        self.estimate = self.estimate + kalman_gain * (measurement - self.estimate)
+        self.error_covariance = (1 - kalman_gain) * self.error_covariance
+
+    def predict(self, velocity_measurement):
+        self.estimate += velocity_measurement  # Incorporate velocity into position prediction
+        self.error_covariance += self.process_variance
+        return self.estimate
+    
+kf = KalmanFilter3(process_variance=0.1, measurement_variance=0.5)
+kalman_positions3 = []
+
+for measurement, velocity in zip(s2_measurements, s2_velocity):
+    kf.update(measurement)
+    kf.predict(velocity)
+    kalman_positions3.append(kf.estimate)
+
+# %%
+# Calculate errors
+kalman_error3 = np.array(kalman_positions3) - true_position
+
+
+# %%
+# Calculate Mean Squared Errors (MSE)
+kalman_mse = np.mean(kalman_error3**2)
+
+# %%
+# Plot position estimation and errors
+plot_position_estimation(
+    true_position, s1_time, s1_measurements, s2_time, s2_measurements,
+    average_position, kalman_positions3, kalman_error3, s1_error, s2_error,
+    kalman_mse, s1_mse, s2_mse
+)
+
+# %%
+# Calculate velocity for each sensor and Kalman filter
+kalman_velocity3 = np.gradient(kalman_positions3, s2_time)
+
+# Calculate velocity errors
+kalman_velocity_error = kalman_velocity3 - true_velocity
+
+# Calculate Mean Squared Errors (MSE) for velocity
+kalman_velocity_mse = np.mean(kalman_velocity_error**2)
+
+# Plot velocity estimation and errors
+plot_velocity_estimation(
+    true_velocity, s1_velocity, s2_velocity, kalman_velocity3,
+    s1_velocity_error, s2_velocity_error, kalman_velocity_error,
+    s1_velocity_mse, s2_velocity_mse, kalman_velocity_mse, s2_time
+)
+
+
+# %% Update and Predict (The right way)
+# Kalman Filter implementation with velocity input for prediction
+class KalmanFilter4:
+    def __init__(self, process_variance, measurement_variance):
+        self.process_variance = process_variance
+        self.measurement_variance = measurement_variance
+        self.estimate_pos = 0
+        self.estimate_vel = 0
+        self.error_covariance = 1
+
+    def update(self, measurement):
+        kalman_gain = self.error_covariance / (self.error_covariance + self.measurement_variance)
+        estimate_pos_new = self.estimate_pos + kalman_gain * (measurement - self.estimate_pos)
+        self.estimate_vel = (estimate_pos_new - self.estimate_pos)
+        self.estimate_pos = estimate_pos_new
+        self.error_covariance = (1 - kalman_gain) * self.error_covariance
+
+    def predict(self):
+        self.error_covariance += self.process_variance
+        return self.estimate_pos
+    
+kf = KalmanFilter4(process_variance=0.1, measurement_variance=0.5)
+kalman_positions4 = []
+kalman_velocity4 = []
+
+for measurement in s2_measurements:
+    kf.update(measurement)
+    kf.predict()
+    kalman_positions4.append(kf.estimate_pos)
+    kalman_velocity4.append(kf.estimate_vel)
+
+# %%
+# Calculate errors
+kalman_error4 = np.array(kalman_positions4) - true_position
+
+# %%
+# Calculate Mean Squared Errors (MSE)
+kalman_mse = np.mean(kalman_error4**2)
+
+# %%
+# Plot position estimation and errors
+plot_position_estimation(
+    true_position, s1_time, s1_measurements, s2_time, s2_measurements,
+    average_position, kalman_positions4, kalman_error4, s1_error, s2_error,
+    kalman_mse, s1_mse, s2_mse
+)
+
+# %%
+# Calculate velocity errors
+kalman_velocity_error = kalman_velocity4 - true_velocity
+
+# Calculate Mean Squared Errors (MSE) for velocity
+kalman_velocity_mse = np.mean(kalman_velocity_error**2)
+
+# Plot velocity estimation and errors
+plot_velocity_estimation(
+    true_velocity, s1_velocity, s2_velocity, kalman_velocity4,
+    s1_velocity_error, s2_velocity_error, kalman_velocity_error,
+    s1_velocity_mse, s2_velocity_mse, kalman_velocity_mse, s2_time
+)
