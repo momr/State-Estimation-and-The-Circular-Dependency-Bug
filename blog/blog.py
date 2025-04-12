@@ -320,24 +320,22 @@ def _(plot_position_estimation, plot_velocity_estimation):
 
 
 @app.cell(hide_code=True)
-def _():
-    ## AI Solution
+def _(mo):
+    mo.md("""## AI Solution""")
     return
 
 
-app._unparsable_cell(
-    r"""
-    See Conversation here: https://claude.ai/share/ca7ce754-f8f7-4b5f-9330-10cf09ad7d29
-    """,
-    column=None, disabled=False, hide_code=True, name="_"
-)
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""See Conversation here: https://claude.ai/share/ca7ce754-f8f7-4b5f-9330-10cf09ad7d29""")
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(
         """
-        > The following section was generated using the following prompt and attaching the two Kalman Filter class implementations into a `main.py` file to the conversation
+        > The following section was generated using the following prompt and attaching the two Kalman Filter class implementations into a ma∈.pymain.py file to the conversation
 
         Human: attached there are two kalman filter classes. please read them carefully and let me know any issues with both. i.e. which one is correct if any? also, how to fix the problems?
         """
@@ -355,7 +353,7 @@ def _(mo):
 
         ## KalmanFilter3 Analysis
 
-        ```python
+        `python
         class KalmanFilter3:
             def __init__(self, process_variance, measurement_variance):
                 self.process_variance = process_variance
@@ -424,50 +422,50 @@ def _(mo):
             def __init__(self, process_variance, measurement_variance):
                 # State vector [position, velocity]
                 self.x = np.array([0.0, 0.0])
-        
+
                 # Error covariance matrix
                 self.P = np.array([[1.0, 0.0],
                                    [0.0, 1.0]])
-        
+
                 # State transition matrix
                 self.F = np.array([[1.0, 1.0],
                                    [0.0, 1.0]])
-        
+
                 # Measurement matrix (we only measure position)
                 self.H = np.array([[1.0, 0.0]])
-        
+
                 # Process noise covariance
                 self.Q = np.array([[0.25*process_variance, 0.5*process_variance],
                                    [0.5*process_variance, process_variance]])
-        
+
                 # Measurement noise
                 self.R = np.array([[measurement_variance]])
-    
+
             def predict(self, dt=1.0):
                 # Update transition matrix for current time step
                 self.F[0, 1] = dt
-        
+
                 # Predict state
                 self.x = self.F @ self.x
-        
+
                 # Predict covariance
                 self.P = self.F @ self.P @ self.F.T + self.Q
-        
+
                 return self.x[0]  # Return position estimate
-    
+
             def update(self, measurement):
                 # Calculate Kalman gain
                 S = self.H @ self.P @ self.H.T + self.R
                 K = self.P @ self.H.T @ np.linalg.inv(S)
-        
+
                 # Update state estimate
                 y = np.array([measurement]) - self.H @ self.x
                 self.x = self.x + K @ y
-        
+
                 # Update error covariance
                 I = np.eye(2)
                 self.P = (I - K @ self.H) @ self.P
-        
+
                 return self.x[0]  # Return updated position
         ```
 
@@ -497,7 +495,6 @@ def _(mo):
         ```
 
         This implementation follows proper Kalman filter theory and should give you more accurate results for both position and velocity estimation.
-
         """
     )
     return
