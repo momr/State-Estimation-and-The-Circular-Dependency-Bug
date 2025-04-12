@@ -34,7 +34,7 @@ def plot_position_estimation(true_position, s1_time, s1_measurements, s2_time, s
         yaxis_title="Position",
         xaxis2_title="Time",
         yaxis2_title="Error",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+        # legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         template="plotly_white"
     )
 
@@ -57,13 +57,13 @@ def plot_velocity_estimation(true_velocity, s1_velocity, s2_velocity, kalman_vel
                   row=1, col=1)
 
     # Add velocity error traces
+    fig.add_trace(go.Scatter(x=s2_time, y=kalman_velocity_error, mode='lines', name=f'Kalman Velocity Error (MSE={kalman_velocity_mse:.2f})', line=dict(color='purple')),
+                  row=2, col=1)
     fig.add_trace(go.Scatter(x=s2_time, y=s1_velocity_error, mode='lines', name=f'Sensor 1 Velocity Error (MSE={s1_velocity_mse:.2f})', line=dict(color='red', dash='dot')),
                   row=2, col=1)
     fig.add_trace(go.Scatter(x=s2_time, y=s2_velocity_error, mode='lines', name=f'Sensor 2 Velocity Error (MSE={s2_velocity_mse:.2f})', line=dict(color='blue', dash='dot')),
                   row=2, col=1)
-    fig.add_trace(go.Scatter(x=s2_time, y=kalman_velocity_error, mode='lines', name=f'Kalman Velocity Error (MSE={kalman_velocity_mse:.2f})', line=dict(color='purple')),
-                  row=2, col=1)
-
+    
     # Update layout
     fig.update_layout(
         title="Velocity Estimation in 1D",
@@ -71,7 +71,7 @@ def plot_velocity_estimation(true_velocity, s1_velocity, s2_velocity, kalman_vel
         yaxis_title="Velocity",
         xaxis2_title="Time",
         yaxis2_title="Error",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
+        # legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
         template="plotly_white"
     )
 
