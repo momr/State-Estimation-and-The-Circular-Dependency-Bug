@@ -1,6 +1,6 @@
 # %%
 import numpy as np
-from utils import plot_position_estimation, plot_velocity_estimation
+from src.utils import plot_position_estimation, plot_velocity_estimation
 
 
 # Simulate noisy data from two sensors
