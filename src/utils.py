@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-def plot_position_estimation(true_position, s1_time, s1_measurements, s2_time, s2_measurements, average_position, kalman_positions, kalman_error, s1_error, s2_error, kalman_mse, s1_mse, s2_mse):
+def plot_position_estimation(true_position, s1_time, s1_measurements, s2_time, s2_measurements, average_position, kalman_positions, kalman_error, s1_error, s2_error, kalman_mse, s1_mse, s2_mse, simple_average_error, simple_average_error_mse):
     """Plots position estimation and errors."""
     # Create subplots
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.1,
@@ -20,13 +20,15 @@ def plot_position_estimation(true_position, s1_time, s1_measurements, s2_time, s
                   row=1, col=1)
 
     # Add error traces with MSE in legend labels
-    fig.add_trace(go.Scatter(x=s2_time, y=kalman_error, mode='lines', name=f'Kalman Error (MSE={kalman_mse:.2f})', line=dict(color='purple')),
-                  row=2, col=1)
     fig.add_trace(go.Scatter(x=s2_time, y=s1_error, mode='lines', name=f'Sensor 1 Error (MSE={s1_mse:.2f})', line=dict(color='red', dash='dot')),
                   row=2, col=1)
     fig.add_trace(go.Scatter(x=s2_time, y=s2_error, mode='lines', name=f'Sensor 2 Error (MSE={s2_mse:.2f})', line=dict(color='blue', dash='dot')),
                   row=2, col=1)
-
+    fig.add_trace(go.Scatter(x=s2_time, y=simple_average_error, mode='lines', name=f'Simple Average Error (MSE={simple_average_error_mse:.2f})', line=dict(color='green', dash='dot')),
+                  row=2, col=1)
+    fig.add_trace(go.Scatter(x=s2_time, y=kalman_error, mode='lines', name=f'Kalman Error (MSE={kalman_mse:.2f})', line=dict(color='purple')),
+                  row=2, col=1)
+    
     # Update layout
     fig.update_layout(
         title="Position Estimation in 1D",

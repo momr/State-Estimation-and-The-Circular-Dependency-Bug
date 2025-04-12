@@ -1,6 +1,6 @@
 # %%
 import numpy as np
-from src.utils import plot_position_estimation, plot_velocity_estimation
+from utils import plot_position_estimation, plot_velocity_estimation
 
 
 # Simulate noisy data from two sensors
@@ -21,10 +21,12 @@ average_position = np.interp(s2_time, s1_time, s1_measurements) * 0.5 + s2_measu
 # Calculate errors
 s1_error = np.interp(s2_time, s1_time, s1_measurements) - true_position
 s2_error = s2_measurements - true_position
+simple_average_error = average_position - true_position
 
 # Calculate Mean Squared Errors (MSE)
 s1_mse = np.mean(s1_error**2)
 s2_mse = np.mean(s2_error**2)
+simple_average_error_mse = np.mean(simple_average_error**2)
 
 # Calculate velocity for each sensor and Kalman filter
 true_velocity = np.gradient(true_position, s2_time)
@@ -42,7 +44,7 @@ s2_velocity_mse = np.mean(s2_velocity_error**2)
 
 # %% Update and Predict (The right way)
 # Kalman Filter implementation with velocity input for prediction
-class KalmanFilter3:
+class KalmanFilter1:
     def __init__(self, process_variance, measurement_variance):
         self.process_variance = process_variance
         self.measurement_variance = measurement_variance
@@ -63,7 +65,7 @@ class KalmanFilter3:
         return self.estimate_pos
 
 # %%
-kf = KalmanFilter3(process_variance=0.1, measurement_variance=0.5)
+kf = KalmanFilter1(process_variance=0.1, measurement_variance=0.5)
 kalman_positions4 = []
 kalman_velocity4 = []
 
@@ -83,7 +85,7 @@ kalman_mse = np.mean(kalman_error4**2)
 plot_position_estimation(
     true_position, s1_time, s1_measurements, s2_time, s2_measurements,
     average_position, kalman_positions4, kalman_error4, s1_error, s2_error,
-    kalman_mse, s1_mse, s2_mse
+    kalman_mse, s1_mse, s2_mse, simple_average_error, simple_average_error_mse
 )
 
 # Calculate velocity errors
@@ -101,7 +103,7 @@ plot_velocity_estimation(
 
 # %% Update and Predict (The ??? way)
 # Kalman Filter implementation with velocity input for prediction
-class KalmanFilter4:
+class KalmanFilter2:
     def __init__(self, process_variance, measurement_variance):
         self.process_variance = process_variance
         self.measurement_variance = measurement_variance
@@ -120,7 +122,7 @@ class KalmanFilter4:
         return self.estimate_pos
 
 # %%
-kf = KalmanFilter4(process_variance=0.1, measurement_variance=0.5)
+kf = KalmanFilter2(process_variance=0.1, measurement_variance=0.5)
 kalman_positions5 = []
 kalman_velocity5 = []
 
@@ -141,7 +143,7 @@ kalman_mse = np.mean(kalman_error5**2)
 plot_position_estimation(
     true_position, s1_time, s1_measurements, s2_time, s2_measurements,
     average_position, kalman_positions4, kalman_error5, s1_error, s2_error,
-    kalman_mse, s1_mse, s2_mse
+    kalman_mse, s1_mse, s2_mse, simple_average_error, simple_average_error_mse
 )
 
 # Calculate velocity errors
@@ -157,7 +159,7 @@ plot_velocity_estimation(
     s1_velocity_mse, s2_velocity_mse, kalman_velocity_mse, s2_time
 )
 
-# %% Update and Predict (The right way)
+# %% The AI Solutioon
 class ImprovedKalmanFilter:
     def __init__(self, process_variance, measurement_variance):
         # State vector [position, velocity]
@@ -232,7 +234,7 @@ kalman_mse = np.mean(kalman_error9**2)
 plot_position_estimation(
     true_position, s1_time, s1_measurements, s2_time, s2_measurements,
     average_position, kalman_positions4, kalman_error9, s1_error, s2_error,
-    kalman_mse, s1_mse, s2_mse
+    kalman_mse, s1_mse, s2_mse, simple_average_error, simple_average_error_mse
 )
 
 # Calculate velocity errors
