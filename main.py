@@ -169,8 +169,8 @@ kf = KalmanFilter3(process_variance=0.1, measurement_variance=0.5)
 kalman_positions3 = []
 
 for measurement, velocity in zip(s2_measurements, s2_velocity):
-    kf.update(measurement)
     kf.predict(velocity)
+    kf.update(measurement)
     kalman_positions3.append(kf.estimate)
 
 # %%
