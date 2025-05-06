@@ -15,3 +15,4 @@ How to use this project:
 1. See AI fix at the end of `main.py` and response at `ai/claude-response.md`
 
 > Published using Github Actions + Workflow Actions + Marimo WSAM Notebooks
+> See the interactive marimo notebook here: <https://momr.github.io/State-Estimation-and-The-Circular-Dependency-Bug/blog/dist>
